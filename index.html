@@ -35,9 +35,12 @@
     background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--ink);
     border-radius:5px;padding:20px 24px;margin-bottom:16px;
   }
-  .exec h2{font-size:12.5px;font-weight:600;color:var(--soft);margin:0 0 9px;letter-spacing:.04em;text-transform:uppercase}
-  .exec p{margin:0;font-size:14.5px;line-height:1.6}
-  .exec b{font-weight:700}
+  .exec h2{font-size:12.5px;font-weight:600;color:var(--soft);margin:0 0 12px;letter-spacing:.04em;text-transform:uppercase}
+  .exec-list{margin:0;padding:0;list-style:none}
+  .exec-list li{position:relative;padding:0 0 0 18px;margin-bottom:11px;font-size:14.5px;line-height:1.5}
+  .exec-list li:last-child{margin-bottom:0}
+  .exec-list li:before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--ink)}
+  .exec-list b{font-weight:700}
 
   .tabs{display:flex;gap:8px;margin-bottom:16px}
   .tab{
@@ -209,8 +212,12 @@
   .flag.calm{background:#E9F1EC;color:var(--ink)}
   .flag b{font-weight:700}
 
-  .assume{margin-top:22px;font-size:12.5px;color:var(--soft);line-height:1.65}
-  .assume strong{color:var(--ink);font-weight:600}
+  .assume-label{margin:22px 0 8px;font-size:12.5px;color:var(--ink)}
+  .assume-label strong{font-weight:600}
+  .assume{margin:0;padding:0;list-style:none;font-size:12.5px;color:var(--soft);line-height:1.55}
+  .assume li{position:relative;padding:0 0 0 14px;margin-bottom:6px}
+  .assume li:last-child{margin-bottom:0}
+  .assume li:before{content:'\2013';position:absolute;left:0;color:var(--soft)}
   .inputs{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;padding-top:16px;border-top:1px solid var(--rule)}
   .inputs div{flex:1 1 130px}
   .inputs label{display:block;font-size:12.5px;color:var(--soft);margin-bottom:5px}
@@ -258,15 +265,12 @@
 
   <section class="exec">
     <h2>Bottom line</h2>
-    <p><b>Take Package A, subject to one confirmation.</b> At 1.600% it is the cheapest of the three, costs
-    nothing to move to because it is a repricing rather than a refinance, and its contractual 2.500% ceiling
-    caps the downside of the floating rate for the full five years. Under your plan &mdash; clearing in 60
-    instalments with a $50,000 lump sum in July 2031 &mdash; A costs roughly $11,400 in interest, against
-    $13,300 for B and $15,900 for C once C&rsquo;s legal and valuation fees are counted. The condition is A&rsquo;s
-    five-year lock-in, which expires the same month you plan to clear the loan: get DBS to confirm in writing
-    that partial prepayments bringing the balance to zero do not trigger the 1.50% full-redemption fee. If they
-    will not confirm it, take B &mdash; its three-year lock-in ends cleanly in January 2030, for about $1,900
-    more in interest.</p>
+    <ul class="exec-list">
+      <li><b>Recommendation: Package A</b> &mdash; cheapest, zero cost to move (repricing, not refinance), 2.500% ceiling caps the downside for 5 years</li>
+      <li><b>Interest cost, 60-month payoff with $50k lump sum:</b> A $11,400 &middot; B $13,300 &middot; C $15,900 (incl. legal &amp; valuation fees)</li>
+      <li><b>One thing to confirm first:</b> A&rsquo;s 5-year lock-in ends the same month you plan to clear the loan &mdash; get DBS to confirm in writing that partial prepayments to zero don&rsquo;t trigger the 1.50% full-redemption fee</li>
+      <li><b>Fallback: Package B</b> &mdash; if DBS won&rsquo;t confirm, its 3-year lock-in ends cleanly in Jan 2030, for ~$1,900 more in interest</li>
+    </ul>
   </section>
 
   <div class="tabs" role="tablist" id="tabs">
@@ -432,14 +436,15 @@
         <tbody id="schedule"></tbody>
       </table>
     </div>
-    <p class="assume">
-      <strong>Assumptions.</strong> First instalment February 2027, following repricing effective 5 January 2027.
-      Rates follow the fact sheet schedule for the selected package; the stressed view applies each fact sheet's own
-      "reference rate at 2%" illustration, and for package A the contractual 2.500% five-year ceiling. CPF deduction
-      is held flat at the slider figure regardless of instalment size, with cash absorbing the rest. Both packages
-      charge no partial prepayment fee, so paying above the contractual minimum is free; full redemption inside the
-      lock-in attracts 1.50% of the outstanding amount. Estimates only &mdash; confirm against your letter of offer.
-    </p>
+    <p class="assume-label"><strong>Assumptions</strong></p>
+    <ul class="assume">
+      <li>First instalment Feb 2027, following repricing effective 5 Jan 2027</li>
+      <li>Rates follow each fact sheet's schedule; stressed view uses each sheet's own "reference rate at 2%" illustration, plus A's 2.500% five-year ceiling</li>
+      <li>CPF deduction held flat at the slider figure regardless of instalment size &mdash; cash absorbs the rest</li>
+      <li>No partial prepayment fee on any package, so paying above the contractual minimum is free</li>
+      <li>Full redemption inside the lock-in attracts 1.50% of the outstanding amount</li>
+      <li>Estimates only &mdash; confirm against your letter of offer</li>
+    </ul>
   </section>
 </div>
 
