@@ -1,0 +1,980 @@
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Loan payoff planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#E7EBE6; --panel:#FFFFFF; --ink:#14312B; --soft:#5B7570; --rule:#C7D1C9;
+    --cpf:#3F6E8C; --cash:#1E7A68; --interest:#A8503E; --lump:#AD7F24; --warn:#8E3222;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--ground);color:var(--ink);
+    font-family:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-variant-numeric:tabular-nums lining-nums;font-size:15px;line-height:1.45;
+  }
+  .shell{max-width:1060px;margin:0 auto;padding:28px 20px 48px}
+
+  .masthead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:18px}
+  .masthead h1{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0}
+  .masthead p{margin:0;color:var(--soft);font-size:13.5px}
+
+  .exec{
+    background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--ink);
+    border-radius:5px;padding:20px 24px;margin-bottom:16px;
+  }
+  .exec h2{font-size:12.5px;font-weight:600;color:var(--soft);margin:0 0 9px;letter-spacing:.04em;text-transform:uppercase}
+  .exec p{margin:0;font-size:14.5px;line-height:1.6}
+  .exec b{font-weight:700}
+
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{
+    flex:1 1 0;text-align:left;font:inherit;cursor:pointer;
+    background:var(--panel);border:1px solid var(--rule);border-radius:5px;
+    padding:13px 16px;color:var(--soft);transition:border-color .12s;
+  }
+  .tab b{display:block;font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px}
+  .tab span{display:block;font-size:12.5px;line-height:1.35}
+  .tab em{font-style:normal;font-weight:700;color:var(--ink)}
+  .tab[aria-selected="true"]{box-shadow:inset 0 0 0 2px var(--ink);border-color:var(--ink)}
+  .tab:focus-visible{outline:2px solid var(--cash);outline-offset:2px}
+
+  .verdict{background:var(--panel);border:1px solid var(--rule);border-radius:5px;padding:26px 26px 20px}
+  .verdict-top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+  .clears-label{font-size:13.5px;color:var(--soft);margin:0 0 2px}
+  .clears-date{font-size:clamp(38px,8vw,62px);font-weight:700;letter-spacing:-.035em;line-height:.95;margin:0}
+  .clears-meta{margin:8px 0 0;font-size:14px;color:var(--soft)}
+  .status{font-size:13px;font-weight:600;padding:5px 11px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+  .status.ok{color:var(--cash)}
+  .status.over{color:var(--warn)}
+
+  .timeline{margin-top:24px}
+  .track{position:relative;height:30px;background:#DDE4DD;border-radius:3px}
+  .fill{position:absolute;left:0;top:0;bottom:0;background:var(--cash);border-radius:3px 0 0 3px;transition:width .18s ease-out}
+  .target{position:absolute;top:-7px;bottom:-7px;width:2px;background:var(--ink)}
+  .target span{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:11.5px;font-weight:600;white-space:nowrap;color:var(--ink)}
+  .notch{position:absolute;top:-5px;bottom:-5px;width:3px;background:var(--lump)}
+  .notch span{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:11.5px;font-weight:600;white-space:nowrap;color:var(--lump)}
+  .track-years{display:flex;justify-content:space-between;margin-top:26px;font-size:12px;color:var(--soft)}
+
+  .summary{display:flex;flex-wrap:wrap;gap:14px 38px;margin-top:22px;padding-top:18px;border-top:1px solid var(--rule)}
+  .summary b{display:block;font-size:23px;font-weight:700;letter-spacing:-.022em;line-height:1.12}
+  .summary span{display:block;font-size:12.5px;color:var(--soft);margin-top:3px}
+  .goals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 28px;margin-top:17px;padding-top:15px;border-top:1px solid var(--rule)}
+  .goal{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.4}
+  .goal i{font-style:normal;font-weight:700;flex:none;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;margin-top:2px}
+  .goal.met i{background:var(--cash)}
+  .goal.miss i{background:var(--warn)}
+  .goal.miss{color:var(--warn)}
+  .goal em{font-style:normal;color:var(--soft)}
+  .goal.miss em{color:var(--warn)}
+
+  .body{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--rule);border-radius:5px;padding:22px}
+  .panel h2{font-size:13.5px;font-weight:600;color:var(--soft);margin:0 0 18px}
+  .panel-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .panel-head h2{margin:0}
+
+  .seg{display:flex;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+  .seg button{font:inherit;font-size:12.5px;font-weight:600;border:0;background:var(--panel);color:var(--soft);padding:7px 13px;cursor:pointer}
+  .seg button+button{border-left:1px solid var(--rule)}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .seg button:focus-visible{outline:2px solid var(--cash);outline-offset:-2px}
+
+  .ctrl{margin-bottom:22px}
+  .ctrl:last-child{margin-bottom:0}
+  .ctrl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px}
+  .ctrl-head label{font-size:14px;font-weight:500}
+  .ctrl-val{font-size:19px;font-weight:700;letter-spacing:-.015em}
+  .ctrl-note{font-size:12.5px;color:var(--soft);margin:7px 0 0}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer;display:block}
+  input[type=range]::-webkit-slider-runnable-track{height:5px;background:#D5DDD6;border-radius:3px}
+  input[type=range]::-moz-range-track{height:5px;background:#D5DDD6;border-radius:3px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--panel);border:5px solid var(--ink);margin-top:-7.5px}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--panel);border:5px solid var(--ink)}
+  input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--cash);outline-offset:3px}
+  input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--cash);outline-offset:3px}
+  #cash::-webkit-slider-thumb{border-color:var(--cash)} #cash::-moz-range-thumb{border-color:var(--cash)}
+  #cpf::-webkit-slider-thumb{border-color:var(--cpf)} #cpf::-moz-range-thumb{border-color:var(--cpf)}
+  #lumpAmt::-webkit-slider-thumb{border-color:var(--lump)} #lumpAmt::-moz-range-thumb{border-color:var(--lump)}
+  #lumpMonth::-webkit-slider-thumb{border-color:var(--lump)} #lumpMonth::-moz-range-thumb{border-color:var(--lump)}
+
+  .snap{margin-top:14px;font:inherit;font-size:13px;font-weight:600;background:var(--ink);color:#fff;border:0;border-radius:3px;padding:9px 14px;cursor:pointer;width:100%}
+  .snap:hover{background:#0C211C}
+  .snap:focus-visible{outline:2px solid var(--cash);outline-offset:2px}
+
+  .line{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:12px 0;border-top:1px solid var(--rule)}
+  .line:first-of-type{border-top:0;padding-top:0}
+  .line dt{color:var(--soft);font-size:13.5px;margin:0;flex:1 1 auto;min-width:0}
+  .line dd{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;text-align:right;flex:0 0 auto}
+  .line dd small{display:block;font-size:12px;font-weight:400;color:var(--soft);text-align:right;letter-spacing:0;margin-top:3px;line-height:1.35;max-width:160px;margin-left:auto}
+  dl{margin:0}
+  .split{display:flex;height:9px;border-radius:2px;overflow:hidden;margin:16px 0 8px}
+  .split i{display:block;height:100%}
+  .key{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--soft)}
+  .key i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:baseline}
+
+  .chart-wrap{margin-top:18px}
+  svg{display:block;width:100%;height:auto}
+  .grid-line{stroke:var(--rule);stroke-width:1}
+  .axis-txt{fill:var(--soft);font-size:11px;font-family:inherit}
+  .bal-line{fill:none;stroke:var(--cash);stroke-width:2.5;stroke-linejoin:round}
+  .bal-area{fill:var(--cash);opacity:.1}
+  .lump-line{stroke:var(--lump);stroke-width:2;stroke-dasharray:4 3}
+  .lock-line{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:2 4}
+  .chart-key{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px;font-size:12px;color:var(--soft)}
+  .chart-key i{display:inline-block;width:16px;border-top:2px dashed currentColor;margin-right:6px;vertical-align:middle}
+
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px}
+  th,td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--rule)}
+  th:first-child,td:first-child{text-align:left}
+  th{font-weight:600;color:var(--soft);font-size:12.5px}
+  tbody tr:last-child td{border-bottom:0}
+  td.zero{color:var(--cash);font-weight:600}
+  tbody tr.has-lump td{background:#E6F2ED}
+  .lump-tag{display:inline-block;margin-left:10px;padding:3px 9px;border-radius:3px;background:var(--cash);color:#fff;font-size:11.5px;font-weight:600;white-space:nowrap;vertical-align:1px}
+  tbody tr.now-rate td{font-weight:600}
+
+  table.delta{margin-top:13px;font-size:13px}
+  table.delta th,table.delta td{padding:6px 4px;border-bottom:1px solid #E4E9E4}
+  table.delta thead th{font-size:11.5px;font-weight:500;color:var(--soft);padding-top:0}
+  table.delta tbody th{text-align:left;font-weight:400;color:var(--soft)}
+  table.delta td{text-align:right}
+  table.delta td.now{color:var(--soft)}
+  table.delta td.plan{font-weight:600}
+  table.delta td.chg{font-weight:600;white-space:nowrap}
+  table.delta td.up{color:var(--interest)}
+  table.delta td.down{color:var(--cash)}
+  table.delta td.flat{color:var(--soft);font-weight:400}
+  table.delta tr.sum th,table.delta tr.sum td{border-bottom:0;border-top:1px solid var(--rule);padding-top:8px}
+  table.delta tr.sum th{color:var(--ink);font-weight:600}
+
+  .info{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:15px;height:15px;margin-left:5px;padding:0;
+    border:1px solid var(--soft);border-radius:50%;background:transparent;color:var(--soft);
+    font:inherit;font-size:10px;font-weight:700;font-style:italic;line-height:1;
+    cursor:pointer;vertical-align:1px;flex:none;
+  }
+  .info:hover{background:var(--ink);border-color:var(--ink);color:#fff}
+  .info:focus-visible{outline:2px solid var(--cash);outline-offset:2px}
+  .pop{
+    position:absolute;z-index:40;max-width:min(370px,calc(100vw - 24px));
+    background:var(--ink);color:#DCE5DF;border-radius:5px;padding:15px 17px;
+    font-size:12.5px;line-height:1.55;box-shadow:0 8px 26px rgba(20,49,43,.24);
+  }
+  .pop b{display:block;font-size:12px;font-weight:700;margin-bottom:9px;color:#fff;letter-spacing:.02em}
+  .pop ul{margin:0;padding:0;list-style:none}
+  .pop li{position:relative;padding-left:16px;margin-bottom:9px}
+  .pop li:last-child{margin-bottom:0}
+  .pop li:before{content:'';position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:#7FB3A2}
+  .pop[hidden]{display:none}
+
+  .scroll{
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    background:
+      linear-gradient(90deg,var(--panel) 0,rgba(255,255,255,0) 18px) 0 0,
+      linear-gradient(270deg,var(--panel) 0,rgba(255,255,255,0) 18px) 100% 0;
+    background-repeat:no-repeat;background-size:26px 100%;background-attachment:local;
+  }
+  .scroll table{min-width:100%}
+  .scroll table.compare{min-width:600px}
+  table.compare{margin-top:2px}
+  table.compare th,table.compare td{text-align:left;vertical-align:top;padding:13px 14px 13px 0;font-size:13px;line-height:1.5}
+  table.compare thead th{font-size:14px;font-weight:700;color:var(--ink);padding-bottom:9px}
+  table.compare thead th span{display:block;font-size:11.5px;font-weight:400;color:var(--soft);margin-top:2px;letter-spacing:.01em}
+  table.compare tbody th{font-weight:500;color:var(--soft);width:21%;padding-right:18px}
+  table.compare .col-on{background:#EBF2EE}
+  table.compare thead th.col-on{border-radius:4px 4px 0 0;padding-left:12px}
+  table.compare td.col-on{padding-left:12px}
+  table.compare tbody tr:last-child td.col-on{border-radius:0 0 4px 4px}
+
+  .terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 30px;margin-top:20px}
+  .terms div{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:13.5px}
+  .terms dt{color:var(--soft);margin:0}
+  .terms dd{margin:0;font-weight:600;text-align:right}
+  .flag{margin:18px 0 0;padding:13px 15px;border-radius:4px;background:#F7E9E5;color:var(--warn);font-size:13.5px;line-height:1.55}
+  .flag.calm{background:#E9F1EC;color:var(--ink)}
+  .flag b{font-weight:700}
+
+  .assume{margin-top:22px;font-size:12.5px;color:var(--soft);line-height:1.65}
+  .assume strong{color:var(--ink);font-weight:600}
+  .inputs{display:flex;flex-wrap:wrap;gap:16px;margin-top:16px;padding-top:16px;border-top:1px solid var(--rule)}
+  .inputs div{flex:1 1 130px}
+  .inputs label{display:block;font-size:12.5px;color:var(--soft);margin-bottom:5px}
+  .inputs input{width:100%;font:inherit;font-size:14.5px;font-weight:600;padding:7px 9px;border:1px solid var(--rule);border-radius:3px;background:#F6F8F6;color:var(--ink)}
+  .inputs input:focus-visible{outline:2px solid var(--cash);outline-offset:1px}
+  .alert{margin-top:14px;padding:11px 13px;border-radius:3px;background:#F7E9E5;color:var(--warn);font-size:13.5px;font-weight:500}
+  .alert[hidden]{display:none}
+
+  @media (max-width:760px){
+    .body{grid-template-columns:1fr}
+    .tabs{flex-direction:column}
+    .terms{grid-template-columns:1fr}
+    .shell{padding:20px 15px 40px}
+    .verdict{padding:20px 18px 16px}
+    .panel{padding:18px}
+    table.compare th, table.compare td{padding:11px 12px 11px 0}
+    table.compare tbody th{width:34%;padding-right:12px}
+    table.compare thead th.col-on, table.compare td.col-on{padding-left:10px}
+  }
+  @media (max-width:560px){
+    .goals{grid-template-columns:1fr}
+    .verdict-top{align-items:flex-start}
+    .summary{gap:16px 26px}
+    .inputs{gap:14px}
+    .inputs div{flex-basis:100%}
+  }
+  @media (max-width:420px){
+    .clears-date{font-size:15vw}
+    .snap{padding:11px 14px}
+    input[type=range]{height:26px}
+    input[type=range]::-webkit-slider-thumb{width:22px;height:22px;margin-top:-8.5px}
+    input[type=range]::-moz-range-thumb{width:22px;height:22px}
+    .tab{padding:14px 15px}
+    .inputs input{font-size:16px}
+  }
+  @media (prefers-reduced-motion:reduce){ .fill{transition:none} }
+</style>
+
+<div class="shell">
+
+  <div class="masthead">
+    <h1>Home Loan payoff planner</h1>
+    <p>DBS repricing on $239,000, fact sheets dated 15 Sep 2026.</p>
+  </div>
+
+  <section class="exec">
+    <h2>Bottom line</h2>
+    <p><b>Take Package A, subject to one confirmation.</b> At 1.600% it is the cheapest of the three, costs
+    nothing to move to because it is a repricing rather than a refinance, and its contractual 2.500% ceiling
+    caps the downside of the floating rate for the full five years. Under your plan &mdash; clearing in 60
+    instalments with a $50,000 lump sum in July 2031 &mdash; A costs roughly $11,400 in interest, against
+    $13,300 for B and $15,900 for C once C&rsquo;s legal and valuation fees are counted. The condition is A&rsquo;s
+    five-year lock-in, which expires the same month you plan to clear the loan: get DBS to confirm in writing
+    that partial prepayments bringing the balance to zero do not trigger the 1.50% full-redemption fee. If they
+    will not confirm it, take B &mdash; its three-year lock-in ends cleanly in January 2030, for about $1,900
+    more in interest.</p>
+  </section>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" data-pkg="A" aria-selected="true">
+      <b>A &middot; 5-year FHR6</b>
+      <span>DBS repricing, capped at 2.500% &middot; <em>1.600%</em></span>
+    </button>
+    <button class="tab" role="tab" data-pkg="B" aria-selected="false">
+      <b>B &middot; 3-year Fixed</b>
+      <span>DBS repricing, then 3M SORA &middot; <em>1.780%</em></span>
+    </button>
+    <button class="tab" role="tab" data-pkg="C" aria-selected="false">
+      <b>C &middot; 2-year Fixed</b>
+      <span>External refinance, fees apply &middot; <em>1.650%</em></span>
+    </button>
+  </div>
+
+  <section class="verdict">
+    <div class="verdict-top">
+      <div>
+        <p class="clears-label">Loan clears</p>
+        <p class="clears-date" id="payoffDate">Jan 2032</p>
+        <p class="clears-meta" id="payoffMeta"></p>
+      </div>
+      <div class="status ok" id="statusChip">On target</div>
+    </div>
+
+    <div class="timeline">
+      <div class="track">
+        <div class="fill" id="fill"></div>
+        <div class="notch" id="notch"><span id="notchLabel"></span></div>
+        <div class="target" id="target"><span>5-year target &middot; Jan 2032</span></div>
+      </div>
+      <div class="track-years" id="trackYears"></div>
+    </div>
+
+    <div class="summary" id="summary"></div>
+    <div class="goals" id="goals"></div>
+  </section>
+
+  <div class="body">
+    <section class="panel">
+      <h2>What you put in each month</h2>
+
+      <div class="ctrl">
+        <div class="ctrl-head">
+          <label for="cash">Cash outlay, both of you</label>
+          <span class="ctrl-val" id="cashVal"></span>
+        </div>
+        <input type="range" id="cash" min="500" max="6000" step="10" value="2350">
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-head">
+          <label for="cpf">CPF deduction, both of you</label>
+          <span class="ctrl-val" id="cpfVal"></span>
+        </div>
+        <input type="range" id="cpf" min="0" max="2000" step="50" value="1000">
+        <p class="ctrl-note" id="cpfNote"></p>
+        <table class="delta">
+          <thead><tr><th>Per month</th><th>Now</th><th>Planned</th><th>Change</th></tr></thead>
+          <tbody id="deltaBody"></tbody>
+        </table>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-head">
+          <label for="lumpAmt">Lump sum</label>
+          <span class="ctrl-val" id="lumpAmtVal"></span>
+        </div>
+        <input type="range" id="lumpAmt" min="0" max="100000" step="1000" value="50000">
+        <p class="ctrl-note" id="lumpEach"></p>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-head">
+          <label for="lumpMonth">Lump sum timing</label>
+          <span class="ctrl-val" id="lumpMonthVal"></span>
+        </div>
+        <input type="range" id="lumpMonth" min="1" max="84" step="1" value="54">
+        <p class="ctrl-note" id="lumpNote"></p>
+      </div>
+
+      <button class="snap" id="snap">Set cash to clear in exactly 60 months</button>
+      <div class="alert" id="alert" hidden></div>
+
+      <div class="inputs">
+        <div>
+          <label for="bal">Loan amount</label>
+          <input type="text" id="bal" inputmode="numeric" autocomplete="off" value="239,000">
+        </div>
+        <div>
+          <label for="ceil">Comfortable cash, each</label>
+          <input type="text" id="ceil" inputmode="numeric" autocomplete="off" value="1,300">
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>What it costs you</h2>
+      <dl>
+        <div class="line"><dt>Monthly instalment</dt><dd id="instalment">$0<small id="perPerson"></small></dd></div>
+        <div class="line"><dt>Contractual minimum</dt><dd id="floorFig">$0<small id="floorNote"></small></dd></div>
+        <div class="line"><dt>Total interest paid</dt><dd id="totalInterest">$0</dd></div>
+        <div class="line"><dt>Upfront legal &amp; valuation</dt><dd id="upfrontFig">$0<small id="upfrontNote"></small></dd></div>
+        <div class="line"><dt>Total cash out of pocket</dt><dd id="totalCash">$0<small>excludes CPF</small></dd></div>
+        <div class="line"><dt>CPF Ordinary Account used</dt><dd id="totalCpf">$0<small>refundable with accrued interest on sale</small></dd></div>
+      </dl>
+
+      <div class="split" id="split"></div>
+      <div class="key">
+        <span><i style="background:var(--cash)"></i>Cash</span>
+        <span><i style="background:var(--cpf)"></i>CPF</span>
+        <span><i style="background:var(--lump)"></i>Lump sum</span>
+        <span><i style="background:var(--interest)"></i>Interest</span>
+      </div>
+
+      <div class="chart-wrap">
+        <svg id="chart" viewBox="0 0 560 220" role="img" aria-labelledby="chartTitle">
+          <title id="chartTitle">Outstanding balance over time</title>
+        </svg>
+        <div class="chart-key">
+          <span style="color:var(--lump)"><i></i>Lump sum</span>
+          <span style="color:var(--ink)"><i></i>Lock-in ends</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:18px">
+    <div class="panel-head">
+      <h2 id="rateTitle"></h2>
+      <div class="seg" id="seg">
+        <button type="button" data-s="quoted" aria-pressed="true">As quoted</button>
+        <button type="button" data-s="stress" aria-pressed="false">Stressed</button>
+      </div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Period</th><th>Components</th><th>Rate</th><th>Monthly</th><th>Yearly</th></tr></thead>
+        <tbody id="rateRows"></tbody>
+      </table>
+    </div>
+    <dl class="terms" id="terms"></dl>
+    <p class="flag" id="pkgNote"></p>
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>How the three rate types work</h2>
+    <div class="scroll">
+      <table class="compare">
+        <thead><tr id="cmpHead"></tr></thead>
+        <tbody id="cmpBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>Balance at each year end</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Year</th><th>Paid in year</th><th>Interest</th><th>Balance at year end</th></tr></thead>
+        <tbody id="schedule"></tbody>
+      </table>
+    </div>
+    <p class="assume">
+      <strong>Assumptions.</strong> First instalment February 2027, following repricing effective 5 January 2027.
+      Rates follow the fact sheet schedule for the selected package; the stressed view applies each fact sheet's own
+      "reference rate at 2%" illustration, and for package A the contractual 2.500% five-year ceiling. CPF deduction
+      is held flat at the slider figure regardless of instalment size, with cash absorbing the rest. Both packages
+      charge no partial prepayment fee, so paying above the contractual minimum is free; full redemption inside the
+      lock-in attracts 1.50% of the outstanding amount. Estimates only &mdash; confirm against your letter of offer.
+    </p>
+  </section>
+</div>
+
+<script>
+(function(){
+  var START_YEAR = 2027, START_MONTH = 1;
+  var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var HORIZON = 84, TARGET = 60;
+  var NOW_CASH_EACH = 575, NOW_CPF_EACH = 500;
+
+  var PKG = {
+    A: {
+      title: 'Package A \u00b7 5-year FHR6 floating',
+      lockIn: 60,
+      floor: 2173.28,
+      upfront: 0,
+      primary: 'FHR6',
+      quoted:   [{from:1, rate:1.600}, {from:61, rate:2.000}],
+      stressed: [{from:1, rate:2.500}, {from:61, rate:3.200}],
+      rows: [
+        ['Years 1\u20135','FHR6 0.800% + spread 0.800%','1.600%','$2,173.28','$26,079.36'],
+        ['Year 6 onward','FHR6 0.800% + spread 1.200%','2.000%','$2,215.82','$26,589.84']
+      ],
+      stressRows: [
+        ['Years 1\u20135','Contractual ceiling applies','2.500%','$2,269.72','$27,236.62'],
+        ['Year 6 onward','FHR6 2.000% + spread 1.200%','3.200%','no cap','no cap']
+      ],
+      terms: [
+        ['Lock-in','5 years'],
+        ['Rate ceiling','2.500% for 5 years'],
+        ['Partial prepayment','No fee'],
+        ['Full redemption in lock-in','1.50% of outstanding'],
+        ['Quoted total, 9y 11m','$261,130.18'],
+        ['Paid back per $1 loaned','$1.09']
+      ],
+      warn: true,
+      note: '<b>Check this before signing.</b> The 5-year lock-in expires around the same month you plan to clear the loan. ' +
+            'Partial prepayments are free, but full redemption inside the lock-in costs 1.50% of what is outstanding. ' +
+            'Ask DBS in writing whether partial prepayments that bring the balance to zero trigger that fee, and whether ' +
+            'you may leave a nominal balance running until the lock-in expires.'
+    },
+    B: {
+      title: 'Package B \u00b7 3-year fixed, then 3M SORA',
+      lockIn: 36,
+      floor: 2192.36,
+      upfront: 0,
+      primary: 'Fixed',
+      quoted:   [{from:1, rate:1.780}, {from:37, rate:2.186}],
+      stressed: [{from:1, rate:1.780}, {from:37, rate:3.000}],
+      rows: [
+        ['Years 1\u20133','Fixed','1.780%','$2,192.36','$26,308.32'],
+        ['Year 4 onward','3M SORA 1.186% + spread 1.000%','2.186%','$2,235.77','$26,829.24']
+      ],
+      stressRows: [
+        ['Years 1\u20133','Fixed, unaffected','1.780%','$2,192.36','$26,308.32'],
+        ['Year 4 onward','3M SORA 2.000% + spread 1.000%','3.000%','$2,324.44','$27,893.28']
+      ],
+      terms: [
+        ['Lock-in','3 years'],
+        ['Rate ceiling','None from year 4'],
+        ['Partial prepayment','No fee'],
+        ['Full redemption in lock-in','1.50% of outstanding'],
+        ['Quoted total, 9y 11m','$264,493.87'],
+        ['Paid back per $1 loaned','$1.11']
+      ],
+      warn: false,
+      note: 'The 3-year lock-in expires around January 2030, well before your payoff target, so the full loan can be ' +
+            'redeemed with no penalty. The trade is that from year 4 the rate floats on 3M SORA with no ceiling.'
+    },
+    C: {
+      title: 'Package C \u00b7 2-year fixed, external refinance',
+      lockIn: 24,
+      floor: 2178.57,
+      upfront: 2500,
+      primary: 'Fixed',
+      quoted:   [{from:1, rate:1.650}, {from:25, rate:2.186}],
+      stressed: [{from:1, rate:1.650}, {from:25, rate:3.000}],
+      rows: [
+        ['Years 1\u20132','Fixed','1.650%','$2,178.57','$26,142.87'],
+        ['Year 3 onward','Assumed 3M SORA 1.186% + 1.000%','2.186%','$2,224.52','$26,694.21']
+      ],
+      stressRows: [
+        ['Years 1\u20132','Fixed, unaffected','1.650%','$2,178.57','$26,142.87'],
+        ['Year 3 onward','Assumed 3M SORA 2.000% + 1.000%','3.000%','$2,295.46','$27,545.49']
+      ],
+      terms: [
+        ['Lock-in','2 years, to confirm'],
+        ['Rate ceiling','None from year 3'],
+        ['Partial prepayment','To confirm with the bank'],
+        ['Legal and valuation','About $2,500, not subsidised'],
+        ['Fixed period','Shortest of the three'],
+        ['Reversion rate','Not yet quoted']
+      ],
+      warn: true,
+      note: '<b>This is the only option with an upfront cost.</b> At $239,000 the loan sits below the quantum most ' +
+            'banks require for a legal fee subsidy, so budget around $2,500 for legal and valuation. That alone ' +
+            'outweighs the rate gap against Package A. The reversion rate from year 3 is an assumption, not a quote \u2014 ' +
+            'ask the bank what the loan pegs to after the fixed period, and whether partial prepayment is free.'
+    }
+  };
+
+  var GLOSSARY = {
+    'FHR6': {
+      title: 'FHR6 \u00b7 Fixed Deposit Home Rate (6-month)',
+      points: [
+        '<b2>Set by DBS, not the market.</b2> Pegged to DBS\u2019s prevailing 6-month Singapore Dollar fixed deposit '
+        + 'rate for amounts from S$1,000 to S$9,999. Published, but the bank decides it.',
+        '<b2>Moves in irregular steps, not on a schedule.</b2> Flat for long stretches, then in chunks \u2014 it went '
+        + '0.20% to 2.90% across three revisions in six months during 2022. One month\u2019s notice of any change.',
+        '<b2>Hard ceiling of 2.500% for five years.</b2> Written into your fact sheet, so the worst case is a known '
+        + 'number: an instalment of $2,269.72 instead of $2,173.28.'
+      ]
+    },
+    '3M SORA': {
+      title: '3M SORA \u00b7 Singapore Overnight Rate Average',
+      points: [
+        '<b2>Set by the market, published by MAS.</b2> Derived from actual overnight interbank lending, compounded '
+        + 'over three months. No single bank controls it.',
+        '<b2>Moves continuously.</b2> The three-month compounding smooths the daily noise, but it tracks rates in '
+        + 'real time with no notice period.',
+        '<b2>No ceiling.</b2> Your exposure is open-ended once the fixed period ends \u2014 the main risk on Packages '
+        + 'B and C.'
+      ]
+    },
+    'Fixed': {
+      title: 'Fixed rate',
+      points: [
+        '<b2>Agreed upfront, contractually locked.</b2> Your letter of offer names the rate and DBS cannot change it '
+        + 'during the fixed term.',
+        '<b2>Does not move at all \u2014 until it does.</b2> Certainty lasts only as long as the fixed period, then '
+        + 'the loan reverts to a floating peg you have not yet been quoted.',
+        '<b2>The rate is its own ceiling.</b2> You pay a small premium over floating for that certainty: 1.780% on B '
+        + 'and 1.650% on C, against 1.600% on A.'
+      ]
+    }
+  };
+
+  var RATE_TABLE = {
+    cols: [
+      { key:'FHR6',    name:'FHR6',    sub:'Bank-set floating' },
+      { key:'3M SORA', name:'3M SORA', sub:'Market floating' },
+      { key:'Fixed',   name:'Fixed',   sub:'Contractual' }
+    ],
+    rows: [
+      ['Who sets it',
+       'DBS, from its own published 6-month SGD fixed deposit rate for amounts of S$1,000 to S$9,999.',
+       'MAS, from actual overnight interbank lending, compounded over three months.',
+       'Agreed in your letter of offer and unchangeable for the fixed term.'],
+      ['How fast it moves',
+       'Irregular steps. Flat for long stretches, then in chunks \u2014 0.20% to 2.90% in six months during 2022. One month\u2019s notice.',
+       'Continuously, tracking the market. Three-month compounding smooths it, but there is no notice period.',
+       'Not at all during the fixed term. Then it reverts to a floating peg.'],
+      ['Hard ceiling',
+       '<b3>2.500% for five years</b3>, written into the fact sheet.',
+       '<b3>None.</b3> Open-ended once the fixed period ends.',
+       '<b3>The rate itself</b3>, but only for its term.'],
+      ['Where it applies',
+       'Package A, years 1\u20135 at 1.600%.',
+       'Package B from year 4; Package C from year 3, assumed not quoted.',
+       'Package B years 1\u20133 at 1.780%; Package C years 1\u20132 at 1.650%.']
+    ]
+  };
+
+  var active = 'A', scenario = 'quoted';
+
+  var el = function(id){ return document.getElementById(id); };
+  var money = function(n){ return '$' + Math.round(n).toLocaleString('en-SG'); };
+
+  function num(id){
+    var v = parseFloat(String(el(id).value).replace(/,/g, ''));
+    return isFinite(v) ? v : 0;
+  }
+
+  function groupField(inp){
+    var caret = inp.selectionStart;
+    var before = (inp.value.slice(0, caret).match(/\d/g) || []).length;
+    var digits = inp.value.replace(/\D/g, '').slice(0, 9);
+    if (!digits){ inp.value = ''; return; }
+    var out = parseInt(digits, 10).toLocaleString('en-SG');
+    inp.value = out;
+    var i = 0, seen = 0;
+    while (i < out.length && seen < before){ if (/\d/.test(out[i])) seen++; i++; }
+    if (inp.setSelectionRange) inp.setSelectionRange(i, i);
+  }
+
+  function labelFor(m){
+    var t = START_MONTH + (m - 1);
+    return MONTH_NAMES[t % 12] + ' ' + (START_YEAR + Math.floor(t / 12));
+  }
+
+  function schedule(){ return PKG[active][scenario === 'stress' ? 'stressed' : 'quoted']; }
+
+  function rateAt(sch, m){
+    var r = sch[0].rate;
+    for (var i = 0; i < sch.length; i++){ if (m >= sch[i].from) r = sch[i].rate; }
+    return r;
+  }
+
+  function annotate(html){
+    Object.keys(GLOSSARY).forEach(function(term){
+      var used = false;
+      html = html.replace(new RegExp(term, 'g'), function(match){
+        if (used) return match;
+        used = true;
+        return match + '<button type="button" class="info" data-term="' + term
+             + '" aria-label="What is ' + term + '?">i</button>';
+      });
+    });
+    return html;
+  }
+
+  var pop = document.createElement('div');
+  pop.className = 'pop';
+  pop.hidden = true;
+  document.body.appendChild(pop);
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest ? e.target.closest('.info') : null;
+    if (btn){
+      var g = GLOSSARY[btn.getAttribute('data-term')];
+      pop.innerHTML = '<b>' + g.title + '</b><ul>' + g.points.map(function(x){
+        return '<li>' + x.replace(/<b2>/g,'<strong style="color:#fff">').replace(/<\/b2>/g,'</strong>') + '</li>';
+      }).join('') + '</ul>';
+      pop.hidden = false;
+      var r = btn.getBoundingClientRect();
+      var pw = pop.offsetWidth || 370;
+      var maxLeft = window.scrollX + document.documentElement.clientWidth - pw - 12;
+      pop.style.top = (r.bottom + window.scrollY + 8) + 'px';
+      pop.style.left = Math.max(12, Math.min(r.left + window.scrollX - 8, maxLeft)) + 'px';
+      e.stopPropagation();
+      return;
+    }
+    pop.hidden = true;
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') pop.hidden = true; });
+
+  function fig(value, label){ return '<div><b>' + value + '</b><span>' + label + '</span></div>'; }
+
+  function goal(met, label, detail){
+    return '<div class="goal ' + (met ? 'met' : 'miss') + '"><i>' + (met ? '\u2713' : '\u2715') + '</i>' +
+           '<div>' + label + ' <em>' + detail + '</em></div></div>';
+  }
+
+  function deltaRow(label, now, plan, isSum){
+    var d = plan - now, cls, txt;
+    if (Math.abs(d) < 0.5){ cls = 'flat'; txt = 'no change'; }
+    else if (d > 0){ cls = 'up'; txt = '\u25B2 ' + money(d); }
+    else { cls = 'down'; txt = '\u25BC ' + money(-d); }
+    return '<tr' + (isSum ? ' class="sum"' : '') + '><th>' + label + '</th>' +
+           '<td class="now">' + money(now) + '</td><td class="plan">' + money(plan) + '</td>' +
+           '<td class="chg ' + cls + '">' + txt + '</td></tr>';
+  }
+
+  function simulate(balance, sch, monthly, cpf, lumpAmt, lumpMonth){
+    var bal = balance, interest = 0, cashPaid = 0, cpfPaid = 0;
+    var series = [balance], rows = [], m = 0;
+    var yr = { paid:0, interest:0, lump:0, lumpAt:0 };
+
+    while (bal > 0.005 && m < 480){
+      m++;
+      var i = bal * rateAt(sch, m) / 100 / 12;
+      interest += i; yr.interest += i; bal += i;
+
+      var due = monthly + (m === lumpMonth ? lumpAmt : 0);
+      if (due >= bal) due = bal;
+
+      var reg = Math.min(due, monthly);
+      var c = Math.min(reg, cpf);
+      cpfPaid += c;
+      cashPaid += (reg - c) + (due - reg);
+      if (m === lumpMonth && due > monthly){ yr.lump = due - monthly; yr.lumpAt = m; }
+
+      bal -= due;
+      if (bal < 0.005) bal = 0;
+      yr.paid += due;
+      series.push(bal);
+
+      var t = START_MONTH + (m - 1);
+      if (t % 12 === 11 || bal === 0){
+        rows.push({ year: START_YEAR + Math.floor(t/12), paid: yr.paid, interest: yr.interest,
+                    bal: bal, lump: yr.lump, lumpAt: yr.lumpAt });
+        yr = { paid:0, interest:0, lump:0, lumpAt:0 };
+      }
+    }
+    return { months: bal > 0 ? null : m, interest: interest, cashPaid: cashPaid,
+             cpfPaid: cpfPaid, series: series, rows: rows, stuck: bal > 0 };
+  }
+
+  function requiredMonthly(balance, sch, cpf, lumpAmt, lumpMonth, targetMonths){
+    var lo = 1, hi = balance + lumpAmt + 1;
+    for (var k = 0; k < 60; k++){
+      var mid = (lo + hi) / 2;
+      var s = simulate(balance, sch, mid, cpf, lumpAmt, lumpMonth);
+      if (s.months === null || s.months > targetMonths) lo = mid; else hi = mid;
+    }
+    return hi;
+  }
+
+  function drawChart(series, lumpMon, lumpAmt, lockIn){
+    var W = 560, H = 220, L = 46, R = 26, T = 12, B = 26;
+    var n = Math.max(series.length - 1, 1);
+    var maxY = Math.max.apply(null, series) || 1;
+    var x = function(i){ return L + (i / n) * (W - L - R); };
+    var y = function(v){ return T + (1 - v / maxY) * (H - T - B); };
+    var svg = '';
+
+    for (var g = 0; g <= 4; g++){
+      var v = maxY * g / 4, yy = y(v);
+      svg += '<line class="grid-line" x1="' + L + '" y1="' + yy.toFixed(1) + '" x2="' + (W-R) + '" y2="' + yy.toFixed(1) + '"/>';
+      svg += '<text class="axis-txt" x="' + (L-7) + '" y="' + (yy+3.5).toFixed(1) + '" text-anchor="end">' +
+             (v >= 1000 ? Math.round(v/1000) + 'k' : '0') + '</text>';
+    }
+    for (var i = 0; i <= n; i++){
+      var t = START_MONTH + i - 1;
+      if (i > 0 && t % 12 === 0){
+        svg += '<text class="axis-txt" x="' + x(i).toFixed(1) + '" y="' + (H-8) + '" text-anchor="middle">' +
+               (START_YEAR + Math.floor(t/12)) + '</text>';
+      }
+    }
+    var pts = series.map(function(v,i){ return x(i).toFixed(1) + ',' + y(v).toFixed(1); }).join(' ');
+    svg += '<polygon class="bal-area" points="' + L + ',' + y(0).toFixed(1) + ' ' + pts + ' ' + x(n).toFixed(1) + ',' + y(0).toFixed(1) + '"/>';
+    svg += '<polyline class="bal-line" points="' + pts + '"/>';
+    if (lockIn <= n){
+      svg += '<line class="lock-line" x1="' + x(lockIn).toFixed(1) + '" y1="' + T + '" x2="' + x(lockIn).toFixed(1) + '" y2="' + (H-B) + '"/>';
+    }
+    if (lumpAmt > 0 && lumpMon <= n){
+      svg += '<line class="lump-line" x1="' + x(lumpMon).toFixed(1) + '" y1="' + T + '" x2="' + x(lumpMon).toFixed(1) + '" y2="' + (H-B) + '"/>';
+    }
+    el('chart').innerHTML = '<title id="chartTitle">Outstanding balance over time</title>' + svg;
+  }
+
+  function renderPackage(){
+    var p = PKG[active];
+    pop.hidden = true;
+    el('rateTitle').textContent = p.title;
+    var rows = scenario === 'stress' ? p.stressRows : p.rows;
+    el('rateRows').innerHTML = annotate(rows.map(function(r, idx){
+      return '<tr' + (idx === 0 ? ' class="now-rate"' : '') + '>' +
+             r.map(function(c){ return '<td>' + c + '</td>'; }).join('') + '</tr>';
+    }).join(''));
+    el('terms').innerHTML = p.terms.map(function(t){
+      return '<div><dt>' + t[0] + '</dt><dd>' + t[1] + '</dd></div>';
+    }).join('');
+    el('pkgNote').className = 'flag' + (p.warn ? '' : ' calm');
+    el('pkgNote').innerHTML = p.note;
+    var on = p.primary;
+    el('cmpHead').innerHTML = '<th></th>' + RATE_TABLE.cols.map(function(c){
+      return '<th class="' + (c.key === on ? 'col-on' : '') + '">' + c.name +
+             '<span>' + c.sub + (c.key === on ? ' \u00b7 this package' : '') + '</span></th>';
+    }).join('');
+    el('cmpBody').innerHTML = RATE_TABLE.rows.map(function(r){
+      return '<tr><th>' + r[0] + '</th>' + RATE_TABLE.cols.map(function(c, i){
+        return '<td class="' + (c.key === on ? 'col-on' : '') + '">' +
+               r[i+1].replace(/<b3>/g,'<strong>').replace(/<\/b3>/g,'</strong>') + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+
+    [].forEach.call(el('tabs').children, function(b){
+      b.setAttribute('aria-selected', b.getAttribute('data-pkg') === active ? 'true' : 'false');
+    });
+    [].forEach.call(el('seg').children, function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-s') === scenario ? 'true' : 'false');
+    });
+  }
+
+  function render(){
+    var p = PKG[active], sch = schedule(), lockIn = p.lockIn;
+    var balance = num('bal'), ceiling = num('ceil');
+    var cpf = +el('cpf').value, cash = +el('cash').value;
+    var lumpAmt = +el('lumpAmt').value, lumpMon = +el('lumpMonth').value;
+    var monthly = cpf + cash, rate1 = rateAt(sch, 1);
+
+    el('cashVal').textContent = money(cash);
+    el('cpfVal').textContent = money(cpf);
+    var spread = 2.5 - rate1;
+    el('cpfNote').textContent = money(cpf / 2) + ' each. '
+      + (spread > 0.005
+          ? 'OA pays 2.5%, this package costs ' + rate1.toFixed(2) + '% \u2014 every CPF dollar spent here gives up '
+            + spread.toFixed(2) + '% a year, plus accrued interest on sale.'
+          : spread < -0.005
+            ? 'This package costs ' + rate1.toFixed(2) + '%, above the 2.5% OA rate \u2014 CPF is the cheaper source here.'
+            : 'OA pays 2.5%, the same as this package costs.');
+
+    el('lumpAmtVal').textContent = money(lumpAmt);
+    el('lumpMonthVal').textContent = lumpAmt > 0 ? labelFor(lumpMon) : '\u2014';
+    if (lumpAmt > 0){
+      var reqWith = requiredMonthly(balance, sch, cpf, lumpAmt, lumpMon, TARGET);
+      var reqNone = requiredMonthly(balance, sch, cpf, 0, lumpMon, TARGET);
+      el('lumpEach').textContent = money(lumpAmt / 2) + ' each. Frees up '
+        + money((reqNone - reqWith) / 2) + ' a month each, and still clears by Jan 2032.';
+    } else {
+      el('lumpEach').textContent = 'No lump sum planned.';
+    }
+    el('lumpNote').textContent = lumpAmt > 0
+      ? 'Instalment ' + lumpMon + ' of the new loan'
+      : 'Set a lump sum above to use this';
+
+    el('deltaBody').innerHTML =
+      deltaRow('Cash, each', NOW_CASH_EACH, cash / 2) +
+      deltaRow('CPF, each', NOW_CPF_EACH, cpf / 2) +
+      deltaRow('Your share, each', NOW_CASH_EACH + NOW_CPF_EACH, monthly / 2, true) +
+      deltaRow('Household total', (NOW_CASH_EACH + NOW_CPF_EACH) * 2, monthly, true);
+
+    var s = simulate(balance, sch, monthly, cpf, lumpAmt, lumpMon);
+
+    var alertBox = el('alert');
+    if (s.stuck){
+      alertBox.hidden = false;
+      alertBox.textContent = 'At ' + money(monthly) + ' a month the balance never clears \u2014 interest outpaces the payment. Raise the cash outlay.';
+      el('payoffDate').textContent = 'Never';
+      el('payoffMeta').textContent = 'Payment does not cover monthly interest';
+      el('statusChip').textContent = 'Not viable';
+      el('statusChip').className = 'status over';
+      el('fill').style.width = '100%';
+    } else {
+      alertBox.hidden = true;
+      el('payoffDate').textContent = labelFor(s.months);
+      el('payoffMeta').textContent = s.months + ' instalments from Feb 2027 \u00b7 '
+        + Math.floor(s.months/12) + 'y ' + (s.months % 12) + 'm';
+      var ok = s.months <= TARGET;
+      el('statusChip').textContent = ok
+        ? (s.months === TARGET ? 'On target' : 'Clears ' + (TARGET - s.months) + ' months early')
+        : (s.months - TARGET) + (s.months - TARGET === 1 ? ' month' : ' months') + ' past target';
+      el('statusChip').className = 'status ' + (ok ? 'ok' : 'over');
+      el('fill').style.width = Math.min(100, (s.months / HORIZON) * 100) + '%';
+    }
+
+    el('target').style.left = (TARGET / HORIZON * 100) + '%';
+    var lumpLive = lumpAmt > 0 && (s.months === null || lumpMon <= s.months);
+    el('notch').style.display = lumpLive ? 'block' : 'none';
+    el('notch').style.left = (lumpMon / HORIZON * 100) + '%';
+    el('notchLabel').textContent = money(lumpAmt) + ' \u00b7 ' + labelFor(lumpMon);
+
+    var ruler = '';
+    for (var yv = 2027; yv <= 2034; yv++) ruler += '<span>' + yv + '</span>';
+    el('trackYears').innerHTML = ruler;
+
+    var cashEach = cash / 2, cpfEach = cpf / 2;
+    el('summary').innerHTML =
+      fig(money(monthly), 'Monthly instalment') +
+      fig(money(cashEach), 'Your cash, each') +
+      fig(money(s.interest + p.upfront),
+          p.upfront ? 'Interest plus fees' : 'Interest over the loan') +
+      fig(lumpLive ? money(lumpAmt) : lumpAmt > 0 ? 'Not needed' : 'None',
+          lumpLive ? 'Lump sum \u00b7 ' + money(lumpAmt / 2) + ' each' : 'Lump sum');
+
+    el('goals').innerHTML =
+      goal(s.months !== null && s.months <= TARGET, 'Cleared by Jan 2032',
+           s.months === null ? '\u2014 never clears'
+             : s.months <= TARGET ? '\u2014 ' + s.months + ' instalments'
+             : '\u2014 ' + (s.months - TARGET) + (s.months - TARGET === 1 ? ' month late' : ' months late')) +
+      goal(cashEach <= ceiling + 0.5, 'Cash within ' + money(ceiling) + ' each',
+           '\u2014 ' + money(cashEach) + ' each') +
+      goal(cpfEach <= NOW_CPF_EACH + 0.5, 'CPF capped at ' + money(NOW_CPF_EACH) + ' each',
+           '\u2014 ' + money(cpfEach) + ' each') +
+      goal(s.months !== null && s.months > lockIn, 'Redemption after lock-in ends',
+           s.months === null ? '\u2014 never clears'
+             : s.months > lockIn ? '\u2014 lock-in ends at instalment ' + lockIn
+             : '\u2014 clears at ' + s.months + ', lock-in ends ' + lockIn);
+
+    el('instalment').firstChild.nodeValue = money(monthly);
+    el('perPerson').textContent = money(cashEach) + ' cash each per month';
+    el('floorFig').firstChild.nodeValue = money(p.floor);
+    el('floorNote').textContent = monthly >= p.floor
+      ? money(monthly - p.floor) + ' above the floor, free to skip'
+      : 'below the contractual instalment';
+    el('totalInterest').textContent = money(s.interest);
+    el('upfrontFig').firstChild.nodeValue = p.upfront ? money(p.upfront) : 'None';
+    el('upfrontNote').textContent = p.upfront
+      ? 'below the subsidy threshold at this loan size'
+      : 'repricing with DBS, no legal fees';
+    el('totalCash').firstChild.nodeValue = money(s.cashPaid + p.upfront);
+    el('totalCpf').firstChild.nodeValue = money(s.cpfPaid);
+
+    var lumpUsed = lumpLive ? lumpAmt : 0;
+    var cashOnly = Math.max(0, s.cashPaid - lumpUsed);
+    var tot = cashOnly + s.cpfPaid + lumpUsed + s.interest || 1;
+    el('split').innerHTML =
+      '<i style="background:var(--cash);width:' + (cashOnly/tot*100) + '%"></i>' +
+      '<i style="background:var(--cpf);width:' + (s.cpfPaid/tot*100) + '%"></i>' +
+      '<i style="background:var(--lump);width:' + (lumpUsed/tot*100) + '%"></i>' +
+      '<i style="background:var(--interest);width:' + (s.interest/tot*100) + '%"></i>';
+
+    var tb = '';
+    s.rows.forEach(function(r){
+      var tag = r.lump
+        ? '<span class="lump-tag">' + money(r.lump) + ' lump sum \u00b7 ' + money(r.lump/2)
+          + ' each \u00b7 ' + labelFor(r.lumpAt).split(' ')[0] + '</span>'
+        : '';
+      tb += '<tr' + (r.lump ? ' class="has-lump"' : '') + '><td>' + r.year + tag +
+            '</td><td>' + money(r.paid) + '</td><td>' + money(r.interest) +
+            '</td><td class="' + (r.bal === 0 ? 'zero' : '') + '">' +
+            (r.bal === 0 ? 'Cleared' : money(r.bal)) + '</td></tr>';
+    });
+    el('schedule').innerHTML = tb || '<tr><td colspan="4">No schedule to show.</td></tr>';
+
+    drawChart(s.series, lumpMon, lumpAmt, lockIn);
+    renderPackage();
+  }
+
+  el('tabs').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-pkg]');
+    if (!b) return;
+    active = b.getAttribute('data-pkg');
+    render();
+  });
+
+  el('seg').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-s]');
+    if (!b) return;
+    scenario = b.getAttribute('data-s');
+    render();
+  });
+
+  el('snap').addEventListener('click', function(){
+    var need = requiredMonthly(num('bal'), schedule(), +el('cpf').value,
+                               +el('lumpAmt').value, +el('lumpMonth').value, TARGET);
+    var cashNeeded = Math.ceil((need - (+el('cpf').value)) / 10) * 10;
+    var slider = el('cash');
+    var clamped = Math.min(+slider.max, Math.max(+slider.min, cashNeeded));
+    var changed = +slider.value !== clamped;
+    slider.value = clamped;
+    render();
+
+    var btn = this, original = 'Set cash to clear in exactly 60 months';
+    btn.textContent = changed ? '\u2713 Set to ' + money(clamped) + ' cash' : '\u2713 Already at ' + money(clamped);
+    btn.disabled = true;
+    clearTimeout(btn._t);
+    btn._t = setTimeout(function(){ btn.textContent = original; btn.disabled = false; }, 1600);
+  });
+
+  ['bal','ceil'].forEach(function(id){
+    el(id).addEventListener('input', function(){ groupField(this); });
+    el(id).addEventListener('blur', function(){
+      if (!this.value) this.value = '0';
+      groupField(this);
+      render();
+    });
+  });
+
+  ['cash','lumpAmt','lumpMonth','bal','ceil','cpf'].forEach(function(id){
+    el(id).addEventListener('input', render);
+  });
+
+  render();
+})();
+</script>
