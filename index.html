@@ -260,16 +260,16 @@
 
   <div class="masthead">
     <h1>Home Loan payoff planner</h1>
-    <p>DBS repricing on $239,000, fact sheets dated 15 Sep 2026.</p>
+    <p>DBS repricing on $239,715 projected at 6 Jan 2027 &middot; fact sheets dated 15 Sep 2026.</p>
   </div>
 
   <section class="exec">
     <h2>Bottom line</h2>
     <ul class="exec-list">
       <li><b>Recommendation: Package A</b> &mdash; cheapest, zero cost to move (repricing, not refinance), 2.500% ceiling caps the downside for 5 years</li>
-      <li><b>Interest cost, 60-month payoff with $50k lump sum:</b> A $11,400 &middot; B $13,300 &middot; C $15,900 (incl. legal &amp; valuation fees)</li>
+      <li><b>Interest cost, 60-month payoff with $50k lump sum:</b> A $11,400 &middot; B $13,400 &middot; C $15,900 (incl. legal &amp; valuation fees)</li>
       <li><b>One thing to confirm first:</b> A&rsquo;s 5-year lock-in ends the same month you plan to clear the loan &mdash; get DBS to confirm in writing that partial prepayments to zero don&rsquo;t trigger the 1.50% full-redemption fee</li>
-      <li><b>Fallback: Package B</b> &mdash; if DBS won&rsquo;t confirm, its 3-year lock-in ends cleanly in Jan 2030, for ~$1,900 more in interest</li>
+      <li><b>Fallback: Package B</b> &mdash; if DBS won&rsquo;t confirm, its 3-year lock-in ends cleanly in Jan 2030, for ~$1,900–2,000 more in interest</li>
     </ul>
   </section>
 
@@ -320,7 +320,7 @@
           <label for="cash">Cash outlay, both of you</label>
           <span class="ctrl-val" id="cashVal"></span>
         </div>
-        <input type="range" id="cash" min="500" max="6000" step="10" value="2350">
+        <input type="range" id="cash" min="500" max="6000" step="10" value="2360">
       </div>
 
       <div class="ctrl">
@@ -359,8 +359,8 @@
 
       <div class="inputs">
         <div>
-          <label for="bal">Loan amount</label>
-          <input type="text" id="bal" inputmode="numeric" autocomplete="off" value="239,000">
+          <label for="bal">Loan amount at 6 Jan 2027</label>
+          <input type="text" id="bal" inputmode="numeric" autocomplete="off" value="239,715">
         </div>
         <div>
           <label for="ceil">Comfortable cash, each</label>
@@ -459,7 +459,7 @@
     A: {
       title: 'Package A \u00b7 5-year FHR6 floating',
       lockIn: 60,
-      floor: 2173.28,
+      floor: 2179.79,
       upfront: 0,
       primary: 'FHR6',
       quoted:   [{from:1, rate:1.600}, {from:61, rate:2.000}],
@@ -489,7 +489,7 @@
     B: {
       title: 'Package B \u00b7 3-year fixed, then 3M SORA',
       lockIn: 36,
-      floor: 2192.36,
+      floor: 2198.92,
       upfront: 0,
       primary: 'Fixed',
       quoted:   [{from:1, rate:1.780}, {from:37, rate:2.186}],
@@ -517,7 +517,7 @@
     C: {
       title: 'Package C \u00b7 2-year fixed, external refinance',
       lockIn: 24,
-      floor: 2178.57,
+      floor: 2185.09,
       upfront: 2500,
       primary: 'Fixed',
       quoted:   [{from:1, rate:1.650}, {from:25, rate:2.186}],
